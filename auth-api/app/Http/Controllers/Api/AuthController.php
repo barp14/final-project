@@ -16,14 +16,14 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'lastName' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
-            'last_name' => $validated['last_name'],
+            'lastName' => $validated['lastName'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
@@ -32,7 +32,7 @@ class AuthController extends Controller
             'message' => 'Usuário criado com sucesso',
             'user' => [
                 'name' => $user->name,
-                'last_name' => $user->last_name,
+                'lastName' => $user->lastName,
                 'email' => $user->email,
             ]
         ]);
@@ -62,30 +62,42 @@ class AuthController extends Controller
     // GET /api/token?user=userId - autenticar token JWT
     public function verifyToken(Request $request)
     {
-        $token = $request->header('Authorization');
-        $userId = $request->query('user');
+        $token = $request->header('Authorization');  // normalmente: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        $userId = $request->query('user'); // o id do usuário que você quer validar
 
         if (!$token) {
-            return response()->json(['auth' => false]);
+            return response()->json(['auth' => false], 401);
+        }
+
+        // remover "Bearer " do token, se existir
+        if (str_starts_with($token, 'Bearer ')) {
+            $token = substr($token, 7);
         }
 
         try {
+            // verificar se o token é válido
             $payload = JWTAuth::setToken($token)->getPayload();
 
-            $userObject = User::find($userId);
-            if (!$userObject) {
+            // verificar se userId da query está no token e é igual ao esperado
+            if ($payload->get('sub') != $userId) {
                 return response()->json(['auth' => false]);
             }
 
-            if ($payload->get('userId') == $userObject->id) {
-                return response()->json(['auth' => true]);
+            // buscar usuário no banco
+            $user = User::find($userId);
+            if (!$user) {
+                return response()->json(['auth' => false]);
             }
 
-            return response()->json(['auth' => false]);
-        } catch (JWTException $e) {
+            // Se chegou até aqui, token é válido para o usuário
+            return response()->json(['auth' => true]);
+
+        } catch (\Exception $e) {
             return response()->json(['auth' => false]);
         }
     }
+
+
 
     // GET /api/user?email=... - busca usuário pelo email (query string)
     public function getUserByEmail(Request $request)
@@ -100,7 +112,7 @@ class AuthController extends Controller
 
         return response()->json([
             'name' => $user->name,
-            'last_name' => $user->last_name,
+            'lastName' => $user->lastName,
             'email' => $user->email,
         ]);
     }
