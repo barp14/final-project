@@ -38,6 +38,59 @@ class AuthController extends Controller
         ]);
     }
 
+    // PUT /api/user/{id} - atualizar usuário
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:100',
+            'lastName' => 'sometimes|string|max:100',
+            'email' => 'sometimes|email|unique:users,email,' . $id,
+            'password' => 'sometimes|string|min:6',
+        ]);
+
+        if (isset($validated['name'])) {
+            $user->name = $validated['name'];
+        }
+        if (isset($validated['lastName'])) {
+            $user->lastName = $validated['lastName'];
+        }
+        if (isset($validated['email'])) {
+            $user->email = $validated['email'];
+        }
+        if (isset($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Usuário atualizado com sucesso',
+            'user' => [
+                'name' => $user->name,
+                'lastName' => $user->lastName,
+                'email' => $user->email,
+            ],
+        ]);
+    }
+
+    // DELETE /api/user/{id} - deletar usuário
+    public function deleteUser($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'Usuário não encontrado'], 404);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'Usuário deletado com sucesso']);
+    }
+
     // POST /api/token - login e geração de token JWT
     public function login(Request $request)
     {
@@ -62,14 +115,13 @@ class AuthController extends Controller
     // GET /api/token?user=userId - autenticar token JWT
     public function verifyToken(Request $request)
     {
-        $token = $request->header('Authorization');  // normalmente: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-        $userId = $request->query('user'); // o id do usuário que você quer validar
-
+        $token = $request->header('Authorization'); 
+        $userId = $request->query('user'); 
         if (!$token) {
             return response()->json(['auth' => false], 401);
         }
 
-        // remover "Bearer " do token, se existir
+        // remover "Bearer " do token
         if (str_starts_with($token, 'Bearer ')) {
             $token = substr($token, 7);
         }
@@ -96,8 +148,6 @@ class AuthController extends Controller
             return response()->json(['auth' => false]);
         }
     }
-
-
 
     // GET /api/user?email=... - busca usuário pelo email (query string)
     public function getUserByEmail(Request $request)
