@@ -1,5 +1,7 @@
 #!/bin/bash
 
+docker network create app-network
+
 # Subir os containers em segundo plano
 docker-compose up -d --build
 
@@ -11,6 +13,9 @@ sleep 20
 docker-compose logs -f
 
 docker-compose exec auth-api php artisan
+
+docker-compose exec db mysql -uproject_user -p932545 project < ./db/init.sql
+
 # # Testar a saúde dos serviços
 # echo "Testando a saúde dos serviços..."
 # curl -f http://localhost:8080/health || echo "Auth-API não está respondendo"
