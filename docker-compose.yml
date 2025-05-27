@@ -4,6 +4,7 @@ services:
   auth-api:
     build: 
       context: ./auth-api
+      dockerfile: Dockerfile
     container_name: auth-api
     ports:
       - "8000:80"
@@ -26,6 +27,7 @@ services:
   record-api:
     build:
       context: ./record-api
+      dockerfile: Dockerfile
     container_name: record-api
     ports:
       - "5000:5000"
@@ -36,15 +38,18 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_DATABASE=project
-      - DB_USERNAME=root
+      - DB_USERNAME=project_user
       - DB_PASSWORD=932545
     depends_on:
       - db
       - redis
+    command: ["/wait-for-it.sh", "db:3306", "--", "python", "app.py"]
 
   receive-send-api:
     build: 
       context: ./receive-send-api
+      dockerfile: Dockerfile
+    container_name: receive-send-api
     ports:
       - "3000:3000"
     networks:
@@ -56,11 +61,13 @@ services:
       - DB_DATABASE=project
       - MYSQL_USER=project_user
       - DB_PASSWORD=932545
-      - AUTH_API_URL=http://auth-api-php:80
-      - RECORD_API_URL=http://record-api-url
+      - AUTH_API_URL=http://auth-api-php:8000/api
+      - RECORD_API_URL=http://record-api:5000/message
+      - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - db
       - redis
+      - rabbitmq
 
   db:
     image: mysql:5.7
@@ -73,9 +80,8 @@ services:
       MYSQL_DATABASE: project
       MYSQL_USER: project_user
       MYSQL_PASSWORD: "932545"
-    # volumes:
-    #   - db_data:/var/lib/mysql
-      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
 
@@ -84,6 +90,14 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+
+  rabbitmq:
+    image: rabbitmq:3
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
     networks:
       - app-network
 
