@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-const AUTH_API_URL = 'http://localhost:8000/api/token';
-const RECORD_API_URL = 'http://localhost:5000/message';
+const AUTH_API_URL = process.env.AUTH_API_URL;
+const RECORD_API_URL = process.env.RECORD_API_URL;
 
 async function verifyAuth(token, userId) {
   try {
