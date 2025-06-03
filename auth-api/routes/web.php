@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/health', function () {
+    return response()->json(['status' => 'Auth-API is Healthy']);
+});
 
 Route::get('/', function () {
     return view('welcome');

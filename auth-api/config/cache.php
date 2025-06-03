@@ -108,3 +108,9 @@ return [
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache'),
 
 ];
+
+// Set cache
+Cache::put('key', 'value', 600); // 10 minutes
+
+// Get cache
+$value = Cache::get('key');

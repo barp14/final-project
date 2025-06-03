@@ -5,6 +5,10 @@ import asyncio
 
 app = FastAPI()
 
+@app.get("/health")
+async def health():
+    return {"status": "Record-API is Healthy"}
+
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(start_all_consumers())
