@@ -38,10 +38,12 @@ services:
       - DB_DATABASE=project
       - DB_USERNAME=project_user
       - DB_PASSWORD=932545
+      - AUTH_API_URL=http://auth-api:80/api/token
     depends_on:
       - db
       - redis
-    command: ["/wait-for-it.sh", "db:3306", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]
+      - rabbitmq
+    command: ["/wait-for-it.sh", "db:3306", "--", "/wait-for-it.sh", "rabbitmq:5672", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]
 
   receive-send-api:
     build: 
@@ -59,8 +61,8 @@ services:
       - DB_DATABASE=project
       - MYSQL_USER=project_user
       - DB_PASSWORD=932545
-      - AUTH_API_URL=http://auth-api-php:8000/api
-      - RECORD_API_URL=http://record-api:5000/message
+      - AUTH_API_URL=http://auth-api:80/api
+      - RECORD_API_URL=http://record-api:5001/message
       - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - db
@@ -79,6 +81,7 @@ services:
       MYSQL_USER: project_user
       MYSQL_PASSWORD: "932545"
     volumes:
+      - db-data:/var/lib/mysql  
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network

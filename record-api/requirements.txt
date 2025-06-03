@@ -6,3 +6,5 @@ httpx
 aioredis
 pydantic
 PyJWT
+aio_pika
+mysql-connector-python

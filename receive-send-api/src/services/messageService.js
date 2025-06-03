@@ -8,16 +8,29 @@ const RABBITMQ_URL = process.env.RABBITMQ_URL;
 console.log('AUTH_API_URL:', process.env.AUTH_API_URL);
 
 async function verifyAuth(token, userId) {
+  console.log('Token:', token, 'UserId:', userId);
   try {
-    if (token && token.startsWith('Bearer ')) {
-      token = token.slice(7);
-    }
+    // if (token && token.startsWith('Bearer ')) {
+      //   token = token.slice(7);
+      // }
+      
+      console.log('Token after slicing:', token);
+      console.log('AUTH_API_URL:', process.env.AUTH_API_URL);
+
     const resp = await axios.get(`${AUTH_API_URL}/token`, {
       headers: { Authorization: token },
       params: { user: userId }
     });
+
+    console.log('Response from auth API:', resp.data);
+
     return resp.data.auth === true;
   } catch (err) {
+    console.error('Error verifying auth:', err.message);
+    if (err.response) {
+      console.error('Response data:', err.response.data);
+      console.error('Response status:', err.response.status);
+    }
     return false;
   }
 }

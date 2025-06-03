@@ -17,4 +17,4 @@ RUN chmod +x /wait-for-it.sh
 EXPOSE 5001
 
 # Comando para aguardar o banco MySQL ficar disponível e depois iniciar o uvicorn
-CMD ["/wait-for-it.sh", "db:3306", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]
+CMD ["/wait-for-it.sh", "db:3306", "--", "/wait-for-it.sh", "rabbitmq:5672", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]

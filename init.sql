@@ -3,6 +3,7 @@ CREATE TABLE message (
     message TEXT NOT NULL,
     user_id_send BIGINT UNSIGNED NOT NULL,
     user_id_receive BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id_send) REFERENCES users(id),
     FOREIGN KEY (user_id_receive) REFERENCES users(id)
 );

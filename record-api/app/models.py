@@ -6,7 +6,7 @@ Base = declarative_base()
 class Message(Base):
     __tablename__ = 'message'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    message_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id_send = Column(Integer, nullable=False)
     user_id_receive = Column(Integer, nullable=False)
     message = Column(String(1000), nullable=False)
