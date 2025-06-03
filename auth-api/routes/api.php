@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'Auth-API is Healthy']);
+});
+
 Route::post('/user', [AuthController::class, 'createUser']);        // cria usuário
 Route::get('/token', [AuthController::class, 'verifyToken']);       // verifica token
 Route::post('/token', [AuthController::class, 'login']);            // gera token

@@ -15,4 +15,9 @@ async def cache_set(key: str, value: str, expire: int = 300):
 
 async def cache_get(key: str):
     r = await get_redis()
-    return await r.get(key)
+    value = await r.get(key)
+    if value:
+        print("HIT CACHE")
+    else:
+        print("MISS CACHE")
+    return value

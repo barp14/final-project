@@ -18,12 +18,17 @@ class MessageService:
         self.db.add(msg)
         self.db.commit()
         self.db.refresh(msg)
-        # Invalidate cache related to the user receiving the message
-        # Pode-se implementar aqui a lógica para limpar cache
+        # Invalida o cache do usuário que recebeu e enviou a mensagem
+        from app.cache import get_redis
+        import asyncio
+        async def invalidate():
+            r = await get_redis()
+            await r.delete(f"user_messages:{user_id_send}")
+            await r.delete(f"user_messages:{user_id_receive}")
+        asyncio.create_task(invalidate())
         return msg
 
     async def get_messages_by_user(self, user_id: int):
-        # Tentar cache primeiro
         cache_key = f"user_messages:{user_id}"
         cached = await cache_get(cache_key)
         if cached:

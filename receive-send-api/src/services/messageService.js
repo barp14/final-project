@@ -1,5 +1,6 @@
 const axios = require('axios');
 const amqp = require('amqplib');
+const { cacheGet, cacheSet } = require('../redis/cache');
 
 const AUTH_API_URL = process.env.AUTH_API_URL;
 const RECORD_API_URL = process.env.RECORD_API_URL;
@@ -47,6 +48,10 @@ async function sendMessage({ token, userIdSend, userIdReceive, message }) {
   channel.sendToQueue(queueName, Buffer.from(content), { persistent: true });
   await channel.close();
   await connection.close();
+
+  // Invalida o cache dos usuários envolvidos
+  await client.del(`messages:${userIdSend}`);
+  await client.del(`messages:${userIdReceive}`);
 }
 
 async function processQueue({ token, userIdSend, userIdReceive }) {
@@ -63,6 +68,9 @@ async function processQueue({ token, userIdSend, userIdReceive }) {
     try {
       await axios.post(RECORD_API_URL, content);
       channel.ack(msg);
+      // Invalida o cache dos usuários envolvidos
+      await client.del(`messages:${userIdSend}`);
+      await client.del(`messages:${userIdReceive}`);
     } catch (err) {
       channel.nack(msg, false, true);
     }
@@ -75,10 +83,15 @@ async function getMessages({ token, userId }) {
   if (!await verifyAuth(token, userId)) {
     throw new Error('Usuário não autorizado');
   }
+  const cacheKey = `messages:${userId}`;
+  let data = await cacheGet(cacheKey);
+  if (data) return data;
+
   const response = await axios.get(RECORD_API_URL, {
     headers: { Authorization: token },
     params: { user: userId }
   });
+  await cacheSet(cacheKey, response.data);
   return response.data;
 }
 

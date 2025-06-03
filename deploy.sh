@@ -15,7 +15,7 @@ sleep 20
 docker-compose exec auth-api php artisan migrate
 
 echo "Aguardando o Auth-API iniciar..."
-sleep 10
+sleep 30
 
 docker-compose exec db mysql -uproject_user -p932545 project < ./init.sql
 
