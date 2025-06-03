@@ -30,7 +30,7 @@ services:
       dockerfile: Dockerfile
     container_name: record-api
     ports:
-      - "5000:5000"
+      - "5001:5001"
     networks:
       - app-network
     environment:
@@ -43,7 +43,7 @@ services:
     depends_on:
       - db
       - redis
-    command: ["/wait-for-it.sh", "db:3306", "--", "python", "app.py"]
+    command: ["/wait-for-it.sh", "db:3306", "--", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5001"]
 
   receive-send-api:
     build: 
@@ -70,8 +70,8 @@ services:
       - rabbitmq
 
   db:
-    image: mysql:5.7
-    container_name: auth-api-db
+    image: mysql:8.0
+    container_name: db
     restart: always
     ports:
       - "3307:3306"
@@ -94,7 +94,7 @@ services:
       - app-network
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3.11-management
     container_name: rabbitmq
     ports:
       - "5672:5672"

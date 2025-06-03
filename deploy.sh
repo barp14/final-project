@@ -10,11 +10,16 @@ echo "Aguardando o PostgreSQL iniciar..."
 sleep 20
 
 # Verificar os logs dos containers
-docker-compose logs -f
+# docker-compose logs -f
 
-docker-compose exec auth-api php artisan
+docker-compose exec auth-api php artisan migrate
 
-docker-compose exec db mysql -uproject_user -p932545 project < ./db/init.sql
+echo "Aguardando o Auth-API iniciar..."
+sleep 10
+
+docker-compose exec db mysql -uproject_user -p932545 project < ./init.sql
+
+echo "Tabelas message criadas com sucesso!"
 
 # # Testar a saúde dos serviços
 # echo "Testando a saúde dos serviços..."
